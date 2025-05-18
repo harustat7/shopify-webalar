@@ -4,9 +4,9 @@ This repo contains my solution to the Shopify Liquid coding challenge. I worked 
 I tackled several Liquid templating challenges by modifying the Dawn theme files. The assignment involved creating dynamic elements that respond to product data, user behavior, and time of day.
 
 <h3>Files I modified:</h3>
-product-card.liquid
-collection.liquid
-index.liquid
+product-card.liquid<br>
+collection.liquid<br>
+index.liquid<br>
 cart.liquid
 
 <h3>Implementation notes</h3>
