@@ -44,7 +44,6 @@
         </tbody>
       </table>
       
-      <!-- BONUS TASK: Buy More, Save More -->
       <div class="shipping-message">
         {% assign cart_total = cart.total_price %}
         
@@ -52,7 +51,7 @@
           {% assign amount_needed = 50000 | minus: cart_total %}
           <p>Spend ₹{{ amount_needed | divided_by: 100.00 }} more to get free shipping!</p>
         {% else %}
-          <p class="success-message">🎉 You've unlocked free shipping! 🎉</p>
+          <p class="success-message">You've unlocked free shipping! 🎉</p>
         {% endif %}
       </div>
       
@@ -69,7 +68,6 @@
       </div>
     </form>
     
-    <!-- TASK 4: Custom Upsell Section -->
     <div class="cart-upsell">
       {% assign cart_total = cart.total_price %}
       
