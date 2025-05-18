@@ -1,54 +1,30 @@
-# Shopify Theme Customization
-<h3>Overview</h3>
-Contains custom modifications to key Liquid template files to enhance the user experience and conversion rate of the Shopify store. The modifications focus on improving product discovery, streamlining the shopping experience, and implementing best practices for e-commerce design.
+# Shopify Liquid Assignment - Theme Modifications
+This repo contains my solution to the Shopify Liquid coding challenge. I worked with the Dawn theme to implement the required features.
+<h3>What I did</h3>
+I tackled several Liquid templating challenges by modifying the Dawn theme files. The assignment involved creating dynamic elements that respond to product data, user behavior, and time of day.
 
-<h3>Files Included</h3>
-product-card.liquid: Enhanced product card with view functionality and improved visibility of product options
-collection.liquid: Revised collection page with advanced filtering and sorting
-index.liquid: Optimized homepage with featured collections and improved product showcasing
-cart.liquid: Streamlined cart experience with cross-sell functionality
+<h3>Files I modified:</h3>
+product-card.liquid
+collection.liquid
+index.liquid
+cart.liquid
 
-<h3>Implementation Details</h3>
-<h3>Product Card </h3>
-I implemented a modular product card that maintains consistent styling across the site while dynamically adapting based on where it's displayed (homepage, collection pages, or related products). Key features include:
-Lazy-loaded images with proper aspect ratio maintenance
-Quick-add functionality that works without page reload
-Color/variant swatches that update the product image on hover
-Strategic placement of product badges (sale, new, etc.)
-Optimized mobile display with touch-friendly targets
+<h3>Implementation notes</h3>
+<h3>Dynamic Product Badges (product-card.liquid)</h3>
+For this task, I added conditional badges that show up based on price and stock levels. Getting the inventory quantity was tricky since I needed to access it through the first variant. I had to convert the price from cents to rupees to make the comparison work correctly.
+These badges really pop thanks to some custom CSS I added - went with a bright orange for "Limited Stock" to create urgency and blue for "Budget Pick".
+<h3>Custom Collection Filter (collection.liquid)</h3>
+The tag filtering was interesting to implement. I went with a simple dropdown approach rather than checkboxes since it's more mobile-friendly. The tricky part was making sure the filter remembered the current selection when the page reloaded.
+I spent some time making sure this filter wouldn't break pagination - turns out you need to be careful with how you construct the URLs.
+<h3>Time-based Greeting (index.liquid)</h3>
+This was straightforward but fun. I had to remember that Liquid's date filter returns a string, so I needed to convert it to a number with the plus: 0 filter before making comparisons.
+I tested this by manually changing my computer's time to make sure it switched between greetings correctly. The greeting sits right below the hero image on the homepage.
+<h3>Cart Upsell Section (cart.liquid)</h3>
+This was the most challenging part. I needed to:
+Calculate the cart total
+Pull a product from a specific collection based on that total
+Make sure I wasn't recommending something already in the cart
 
-<h3>Collection Page</h3>
-The collection page has been redesigned to improve product discovery with:
-
-AJAX-powered filtering and sorting that preserves URL parameters
-Intelligent default sort based on inventory and popularity
-Responsive grid that maintains proportions across viewports
-Breadcrumb navigation with schema markup for SEO
-Pagination with proper rel tags and load-more functionality
-
-<h3>Homepage</h3>
-The homepage has been structured to balance promotional content with product discovery:
-
-Dynamic hero section with customizable content blocks
-Featured collections with custom scroll behavior on mobile
-Recently viewed products section using localStorage
-Newsletter signup with proper validation and error states
-Performance optimizations for Core Web Vitals
-
-<h3>Cart Page</h3>
-The cart has been optimized for conversion with:
-
-Real-time shipping calculator
-Cross-sell recommendations based on cart contents
-Persistent cart using localStorage
-Clear inventory and availability messaging
-Streamlined checkout flow with progress indicators
-
-<h3>Testing Approach</h3>
-All modifications were tested across multiple devices and browsers to ensure consistent functionality. Special attention was paid to:
-
-Mobile responsiveness and touch interactions
-Performance optimization (limiting DOM nodes, optimizing asset loading)
-Accessibility standards (proper ARIA attributes, keyboard navigation)
-Edge cases (empty states, error handling, etc.)
-
+I had an issue where the upsell products weren't showing images at first - fixed it by accessing the featured_image property correctly.
+Bonus Shipping Message
+I added a small progress bar under the shipping message to visually show how close customers are to free shipping. When testing, I found that showing the exact amount needed to reach the threshold was more effective than just a static message.
