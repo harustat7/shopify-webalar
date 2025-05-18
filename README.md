@@ -1,17 +1,16 @@
-Shopify Theme Customization
-Overview
-This submission contains custom modifications to key Liquid template files to enhance the user experience and conversion rate of the Shopify store. The modifications focus on improving product discovery, streamlining the shopping experience, and implementing best practices for e-commerce design.
-Files Included
+#Shopify Theme Customization
+<h3>Overview</h3>
+Contains custom modifications to key Liquid template files to enhance the user experience and conversion rate of the Shopify store. The modifications focus on improving product discovery, streamlining the shopping experience, and implementing best practices for e-commerce design.
 
-product-card.liquid: Enhanced product card with quick-view functionality and improved visibility of product options
+<h3>Files Included</h3>
+product-card.liquid: Enhanced product card with view functionality and improved visibility of product options
 collection.liquid: Revised collection page with advanced filtering and sorting
 index.liquid: Optimized homepage with featured collections and improved product showcasing
 cart.liquid: Streamlined cart experience with cross-sell functionality
 
-Implementation Details
-Product Card (product-card.liquid)
+<h3>Implementation Details</h3>
+<h5>Product Card </h5>
 I implemented a modular product card that maintains consistent styling across the site while dynamically adapting based on where it's displayed (homepage, collection pages, or related products). Key features include:
-
 Lazy-loaded images with proper aspect ratio maintenance
 Quick-add functionality that works without page reload
 Color/variant swatches that update the product image on hover
