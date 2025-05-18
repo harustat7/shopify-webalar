@@ -1,0 +1,446 @@
+{% comment %}
+  Template: Collection Page
+  Description: Main template for displaying collection products with filtering and sorting
+{% endcomment %}
+
+{%- liquid
+  assign products_per_page = 24
+  assign pagination_limit = 5
+  assign sorting_options = collection.sort_options
+  assign current_sort = collection.sort_by | default: collection.default_sort_by
+  
+  # Check if we need to show sidebar filters
+  assign show_sidebar = false
+  if collection.filters.size > 0 or collection.sort_options.size > 0
+    assign show_sidebar = true
+  endif
+  
+  # Get active filters count
+  assign active_filters_count = 0
+  for filter in collection.filters
+    if filter.active_values.size > 0
+      assign active_filters_count = active_filters_count | plus: filter.active_values.size
+    elsif filter.min_value.value != nil and filter.max_value.value != nil
+      assign active_filters_count = active_filters_count | plus: 1
+    endif
+  endfor
+  
+  # Set grid classes based on display mode
+  assign grid_classes = 'collection__grid--3-col'
+  if request.design_mode
+    if section.settings.products_per_row == '2'
+      assign grid_classes = 'collection__grid--2-col'
+    elsif section.settings.products_per_row == '3'
+      assign grid_classes = 'collection__grid--3-col'
+    elsif section.settings.products_per_row == '4'
+      assign grid_classes = 'collection__grid--4-col'
+    endif
+  endif
+-%}
+
+<div class="collection-page" data-section-id="{{ section.id }}" data-section-type="collection">
+  {%- if collection.image -%}
+    <div class="collection-header">
+      <div class="collection-header__image-container">
+        {%- if collection.image -%}
+          {%- assign image_size = collection.image.width | append: 'x' -%}
+          <img
+            srcset="{{ collection.image | img_url: '480x' }} 480w,
+                    {{ collection.image | img_url: '765x' }} 765w,
+                    {{ collection.image | img_url: '1000x' }} 1000w,
+                    {{ collection.image | img_url: '1500x' }} 1500w"
+            src="{{ collection.image | img_url: '1000x' }}"
+            sizes="(min-width: 1000px) 1000px, 100vw"
+            alt="{{ collection.title | escape }}"
+            loading="lazy"
+            width="{{ collection.image.width }}"
+            height="{{ collection.image.height }}"
+            class="collection-header__image"
+          >
+        {%- endif -%}
+      </div>
+      
+      <div class="collection-header__content">
+        <h1 class="collection-header__title">{{ collection.title }}</h1>
+        
+        {%- if collection.description != blank -%}
+          <div class="collection-header__description rte">
+            {{ collection.description }}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- else -%}
+    <div class="collection-header collection-header--no-image">
+      <div class="collection-header__content">
+        <h1 class="collection-header__title">{{ collection.title }}</h1>
+        
+        {%- if collection.description != blank -%}
+          <div class="collection-header__description rte">
+            {{ collection.description }}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+  
+  <div class="collection-nav">
+    <nav class="breadcrumbs" aria-label="breadcrumbs">
+      <ol class="breadcrumbs__list">
+        <li class="breadcrumbs__item">
+          <a href="/" class="breadcrumbs__link">{{ 'general.breadcrumbs.home' | t }}</a>
+          <span class="breadcrumbs__divider" aria-hidden="true">{% render 'icon-chevron-right' %}</span>
+        </li>
+        <li class="breadcrumbs__item">
+          <span class="breadcrumbs__text">{{ collection.title }}</span>
+        </li>
+      </ol>
+    </nav>
+    
+    <div class="collection-nav__count">
+      {%- if collection.products_count > 0 -%}
+        <span>{{ collection.products_count }} {{ 'collections.general.products' | t }}</span>
+      {%- endif -%}
+    </div>
+  </div>
+  
+  <div class="collection-toolbar">
+    <div class="collection-toolbar__mobile-filters">
+      <button 
+        type="button" 
+        class="collection-toolbar__filter-button" 
+        aria-expanded="false" 
+        aria-controls="collection-filters-container"
+      >
+        {% render 'icon-filter' %}
+        {{ 'collections.filters.title' | t }}
+        {%- if active_filters_count > 0 -%}
+          <span class="collection-toolbar__filter-count">{{ active_filters_count }}</span>
+        {%- endif -%}
+      </button>
+    </div>
+    
+    <div class="collection-toolbar__sort">
+      <label for="SortBy" class="collection-toolbar__sort-label">{{ 'collections.sorting.title' | t }}</label>
+      <div class="collection-toolbar__sort-wrapper">
+        <select 
+          name="sort_by" 
+          id="SortBy" 
+          class="collection-toolbar__sort-select"
+          aria-describedby="a11y-refresh-page-message"
+          data-collection-sort-by
+        >
+          {%- for option in sorting_options -%}
+            <option 
+              value="{{ option.value }}" 
+              {% if option.value == current_sort %}selected="selected"{% endif %}
+            >
+              {{ option.name }}
+            </option>
+          {%- endfor -%}
+        </select>
+        {% render 'icon-chevron-down' %}
+      </div>
+    </div>
+    
+    <div class="collection-toolbar__view">
+      <button 
+        type="button" 
+        class="collection-toolbar__view-button collection-toolbar__view-button--grid collection-toolbar__view-button--active" 
+        data-view="grid" 
+        aria-label="{{ 'collections.general.grid_view' | t }}"
+      >
+        {% render 'icon-grid' %}
+      </button>
+      <button 
+        type="button" 
+        class="collection-toolbar__view-button collection-toolbar__view-button--list" 
+        data-view="list" 
+        aria-label="{{ 'collections.general.list_view' | t }}"
+      >
+        {% render 'icon-list' %}
+      </button>
+    </div>
+  </div>
+  
+  <div class="collection-container">
+    {%- if show_sidebar -%}
+      <div 
+        id="collection-filters-container" 
+        class="collection-filters" 
+        data-collection-filters
+      >
+        <div class="collection-filters__header">
+          <h2 class="collection-filters__title">{{ 'collections.filters.title' | t }}</h2>
+          <button 
+            type="button" 
+            class="collection-filters__close"
+            aria-label="{{ 'collections.filters.close' | t }}"
+          >
+            {% render 'icon-close' %}
+          </button>
+        </div>
+        
+        {%- if active_filters_count > 0 -%}
+          <div class="collection-filters__active">
+            <div class="collection-filters__active-header">
+              <span>{{ 'collections.filters.active_filters' | t }}</span>
+              <button 
+                type="button" 
+                class="collection-filters__clear-all"
+                aria-label="{{ 'collections.filters.clear_all' | t }}"
+                data-collection-filters-clear-all
+              >
+                {{ 'collections.filters.clear_all' | t }}
+              </button>
+            </div>
+            
+            <div class="collection-filters__active-tags">
+              {%- for filter in collection.filters -%}
+                {%- for active_value in filter.active_values -%}
+                  <div class="collection-filters__active-tag">
+                    <span>{{ filter.label }}: {{ active_value.label }}</span>
+                    <a 
+                      href="{{ active_value.url_to_remove }}" 
+                      class="collection-filters__active-tag-remove"
+                      aria-label="{{ 'collections.filters.remove_filter' | t: value: active_value.label }}"
+                    >
+                      {% render 'icon-close' %}
+                    </a>
+                  </div>
+                {%- endfor -%}
+              
+                {%- if filter.type == 'price_range' -%}
+                  {%- if filter.min_value.value != nil or filter.max_value.value != nil -%}
+                    <div class="collection-filters__active-tag">
+                      <span>
+                        {%- if filter.min_value.value != nil and filter.max_value.value != nil -%}
+                          {{ filter.min_value.value | money }} - {{ filter.max_value.value | money }}
+                        {%- elsif filter.min_value.value != nil -%}
+                          {{ 'collections.filters.from' | t }} {{ filter.min_value.value | money }}
+                        {%- elsif filter.max_value.value != nil -%}
+                          {{ 'collections.filters.to' | t }} {{ filter.max_value.value | money }}
+                        {%- endif -%}
+                      </span>
+                      <a 
+                        href="{{ filter.url_to_remove }}" 
+                        class="collection-filters__active-tag-remove"
+                        aria-label="{{ 'collections.filters.remove_filter' | t: value: filter.label }}"
+                      >
+                        {% render 'icon-close' %}
+                      </a>
+                    </div>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+        
+        <div class="collection-filters__groups">
+          {%- for filter in collection.filters -%}
+            <div 
+              class="collection-filters__group"
+              data-filter-group="{{ filter.label | handle }}"
+            >
+              {%- if filter.type == 'list' -%}
+                <div class="collection-filters__group-header">
+                  <button 
+                    type="button" 
+                    class="collection-filters__group-toggle"
+                    aria-expanded="true"
+                    aria-controls="filter-{{ filter.label | handle }}"
+                  >
+                    {{ filter.label }}
+                    {% render 'icon-chevron-down' %}
+                  </button>
+                </div>
+                
+                <div 
+                  id="filter-{{ filter.label | handle }}" 
+                  class="collection-filters__group-content" 
+                >
+                  <ul class="collection-filters__options">
+                    {%- for filter_value in filter.values -%}
+                      <li class="collection-filters__option">
+                        <a 
+                          href="{{ filter_value.url_to_add }}" 
+                          class="collection-filters__link{% if filter_value.active %} collection-filters__link--active{% endif %}{% if filter_value.count == 0 and filter_value.active == false %} collection-filters__link--disabled{% endif %}"
+                          {% if filter_value.count == 0 and filter_value.active == false %}aria-disabled="true"{% endif %}
+                          data-collection-filter-update
+                        >
+                          <span class="collection-filters__checkbox">
+                            {%- if filter_value.active -%}
+                              {% render 'icon-checkmark' %}
+                            {%- endif -%}
+                          </span>
+                          <span class="collection-filters__label">{{ filter_value.label }}</span>
+                          <span class="collection-filters__count">({{ filter_value.count }})</span>
+                        </a>
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                </div>
+              {%- elsif filter.type == 'price_range' -%}
+                <div class="collection-filters__group-header">
+                  <button 
+                    type="button" 
+                    class="collection-filters__group-toggle"
+                    aria-expanded="true"
+                    aria-controls="filter-{{ filter.label | handle }}"
+                  >
+                    {{ filter.label }}
+                    {% render 'icon-chevron-down' %}
+                  </button>
+                </div>
+                
+                <div 
+                  id="filter-{{ filter.label | handle }}" 
+                  class="collection-filters__group-content"
+                >
+                  <div class="collection-filters__price-range">
+                    <form method="get" action="{{ collection.url }}">
+                      <div class="collection-filters__price-inputs">
+                        <div class="collection-filters__price-input">
+                          <label for="filter-min-price" class="collection-filters__price-label">{{ 'collections.filters.min_price' | t }}</label>
+                          <input 
+                            type="number" 
+                            name="{{ filter.min_value.param_name }}" 
+                            id="filter-min-price" 
+                            class="collection-filters__price-field" 
+                            placeholder="{{ 'collections.filters.min_price' | t }}"
+                            min="0"
+                            {% if filter.min_value.value != nil %}
+                              value="{{ filter.min_value.value | money_without_currency | replace: ',', '' }}"
+                            {% endif %}
+                          >
+                        </div>
+                        
+                        <div class="collection-filters__price-separator">-</div>
+                        
+                        <div class="collection-filters__price-input">
+                          <label for="filter-max-price" class="collection-filters__price-label">{{ 'collections.filters.max_price' | t }}</label>
+                          <input 
+                            type="number" 
+                            name="{{ filter.max_value.param_name }}" 
+                            id="filter-max-price" 
+                            class="collection-filters__price-field" 
+                            placeholder="{{ 'collections.filters.max_price' | t }}"
+                            min="0"
+                            {% if filter.max_value.value != nil %}
+                              value="{{ filter.max_value.value | money_without_currency | replace: ',', '' }}"
+                            {% endif %}
+                          >
+                        </div>
+                      </div>
+                      
+                      <button 
+                        type="submit" 
+                        class="collection-filters__price-submit"
+                      >
+                        {{ 'collections.filters.apply' | t }}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+        
+        <div class="collection-filters__footer">
+          <button 
+            type="button" 
+            class="collection-filters__apply-button"
+            data-collection-filters-close
+          >
+            {{ 'collections.filters.apply' | t }}
+          </button>
+        </div>
+      </div>
+    {%- endif -%}
+    
+    <div class="collection-content{% if show_sidebar %} collection-content--with-sidebar{% endif %}">
+      {%- paginate collection.products by products_per_page -%}
+        {%- if collection.products.size > 0 -%}
+          <div class="collection__grid {{ grid_classes }}" data-collection-grid>
+            {%- for product in collection.products -%}
+              <div class="collection__grid-item">
+                {% render 'product-card', product: product %}
+              </div>
+            {%- endfor -%}
+          </div>
+          
+          {%- if paginate.pages > 1 -%}
+            <div class="collection__pagination">
+              {% render 'pagination', paginate: paginate, pagination_limit: pagination_limit %}
+            </div>
+          {%- endif -%}
+        {%- else -%}
+          <div class="collection__empty">
+            <p>{{ 'collections.general.no_products' | t }}</p>
+            
+            {%- if collection.filters.size > 0 and active_filters_count > 0 -%}
+              <div class="collection__empty-filters">
+                <p>{{ 'collections.general.no_products_with_filters' | t }}</p>
+                <button 
+                  type="button" 
+                  class="collection__empty-clear-button"
+                  data-collection-filters-clear-all
+                >
+                  {{ 'collections.filters.clear_all' | t }}
+                </button>
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endpaginate -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Collection",
+  "settings": [
+    {
+      "type": "select",
+      "id": "products_per_row",
+      "label": "Products per row",
+      "options": [
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        },
+        {
+          "value": "4",
+          "label": "4"
+        }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_image",
+      "label": "Show collection image",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_description",
+      "label": "Show collection description",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_ajax_loading",
+      "label": "Enable AJAX loading",
+      "default": true
+    }
+  ]
+}
+{% endschema %}
