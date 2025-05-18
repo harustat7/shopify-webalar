@@ -1,1 +1,135 @@
+{% comment %}
+  index.liquid
+  This file is based on the requirements for the Shopify Liquid Coding Assignment
+{% endcomment %}
 
+<div class="page-width">
+  <!-- TASK 3: Personalized Greeting -->
+  <div class="personalized-greeting">
+    {% assign current_hour = 'now' | date: "%H" | plus: 0 %}
+    
+    {% if current_hour < 12 %}
+      <h2>Good Morning, Shopper!</h2>
+    {% elsif current_hour < 18 %}
+      <h2>Good Afternoon, Shopper!</h2>
+    {% else %}
+      <h2>Good Evening, Shopper!</h2>
+    {% endif %}
+  </div>
+  
+  <!-- Featured Collection Section -->
+  <div class="homepage-section featured-collection">
+    <h2>Featured Products</h2>
+    <div class="product-grid">
+      {% for product in collections.frontpage.products limit: 4 %}
+        <div class="grid-item">
+          {% include 'product-card', product: product %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  
+  <!-- Hero Banner Section -->
+  <div class="homepage-section hero-banner">
+    <div class="hero-content">
+      <h2>Welcome to Our Shop</h2>
+      <p>Discover our latest products and deals</p>
+      <a href="/collections/all" class="btn">Shop Now</a>
+    </div>
+  </div>
+  
+  <!-- New Arrivals Section -->
+  <div class="homepage-section new-arrivals">
+    <h2>New Arrivals</h2>
+    <div class="product-grid">
+      {% for product in collections.new-arrivals.products limit: 4 %}
+        <div class="grid-item">
+          {% include 'product-card', product: product %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+  .page-width {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .personalized-greeting {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  
+  .personalized-greeting h2 {
+    margin: 0;
+    font-size: 28px;
+    color: #333;
+  }
+  
+  .homepage-section {
+    margin-bottom: 50px;
+  }
+  
+  .homepage-section h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+  }
+  
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 20px;
+  }
+  
+  @media screen and (min-width: 768px) {
+    .product-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media screen and (min-width: 992px) {
+    .product-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  
+  .hero-banner {
+    position: relative;
+    height: 300px;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .hero-content {
+    z-index: 1;
+    padding: 20px;
+  }
+  
+  .btn {
+    display: inline-block;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+  }
+  
+  .btn:hover {
+    background-color: #0056b3;
+  }
+</style>
