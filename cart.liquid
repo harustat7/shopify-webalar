@@ -1,0 +1,459 @@
+{% comment %}
+  cart.liquid
+  This file is based on the requirements for the Shopify Liquid Coding Assignment
+{% endcomment %}
+
+<div class="page-width">
+  <div class="cart-header">
+    <h1>Your Cart</h1>
+  </div>
+  
+  {% if cart.item_count > 0 %}
+    <form action="/cart" method="post" novalidate class="cart-form">
+      <table class="cart-table">
+        <thead>
+          <tr>
+            <th colspan="2">Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in cart.items %}
+            <tr class="cart-item">
+              <td class="cart-item__image">
+                <a href="{{ item.url }}">
+                  <img src="{{ item.image | img_url: '100x100' }}" alt="{{ item.title | escape }}">
+                </a>
+              </td>
+              <td class="cart-item__details">
+                <a href="{{ item.url }}" class="cart-item__title">{{ item.product.title }}</a>
+                {% if item.product.variants.size > 1 %}
+                  <p class="cart-item__variant">{{ item.variant.title }}</p>
+                {% endif %}
+                <a href="/cart/change?line={{ forloop.index }}&quantity=0" class="cart-item__remove">Remove</a>
+              </td>
+              <td class="cart-item__price">{{ item.price | money }}</td>
+              <td class="cart-item__quantity">
+                <input type="number" name="updates[]" id="updates_{{ item.key }}" value="{{ item.quantity }}" min="1" aria-label="Quantity">
+              </td>
+              <td class="cart-item__total">{{ item.final_line_price | money }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      
+      <!-- BONUS TASK: Buy More, Save More -->
+      <div class="shipping-message">
+        {% assign cart_total = cart.total_price %}
+        
+        {% if cart_total < 50000 %}
+          {% assign amount_needed = 50000 | minus: cart_total %}
+          <p>Spend ₹{{ amount_needed | divided_by: 100.00 }} more to get free shipping!</p>
+        {% else %}
+          <p class="success-message">🎉 You've unlocked free shipping! 🎉</p>
+        {% endif %}
+      </div>
+      
+      <div class="cart-footer">
+        <div class="cart-subtotal">
+          <span>Subtotal:</span>
+          <span>{{ cart.total_price | money }}</span>
+        </div>
+        <p class="cart-disclaimer">Taxes and shipping calculated at checkout</p>
+        <div class="cart-actions">
+          <button type="submit" name="update" class="btn btn--update">Update Cart</button>
+          <button type="submit" name="checkout" class="btn btn--checkout">Checkout</button>
+        </div>
+      </div>
+    </form>
+    
+    <!-- TASK 4: Custom Upsell Section -->
+    <div class="cart-upsell">
+      {% assign cart_total = cart.total_price %}
+      
+      {% if cart_total < 100000 %}
+        {% assign upsell_collection = collections['Accessories'] %}
+        <h3>Complete your purchase with these accessories:</h3>
+      {% else %}
+        {% assign upsell_collection = collections['Premium'] %}
+        <h3>You might also like these premium items:</h3>
+      {% endif %}
+      
+      {% if upsell_collection.products.size > 0 %}
+        {% assign random_product = upsell_collection.products | sample %}
+        <div class="upsell-product">
+          <a href="{{ random_product.url }}" class="upsell-product__link">
+            <img src="{{ random_product.featured_image | img_url: '200x200' }}" alt="{{ random_product.title }}" class="upsell-product__image">
+            <h4 class="upsell-product__title">{{ random_product.title }}</h4>
+            <p class="upsell-product__price">{{ random_product.price | money }}</p>
+          </a>
+          <form action="/cart/add" method="post" class="upsell-product__form">
+            <input type="hidden" name="id" value="{{ random_product.variants.first.id }}">
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" class="btn btn--add-to-cart">Add to Cart</button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="empty-cart">
+      <p>Your cart is currently empty.</p>
+      <a href="/collections/all" class="btn btn--continue">Continue Shopping</a>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+  .page-width {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  
+  .cart-header {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  .cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+  }
+  
+  .cart-table th,
+  .cart-table td {
+    padding: 15px;
+    border-bottom: 1px solid #e8e8e8;
+  }
+  
+  .cart-table th {
+    text-align: left;
+    font-weight: bold;
+  }
+  
+  .cart-item__image img {
+    max-width: 100px;
+    height: auto;
+  }
+  
+  .cart-item__title {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+  }
+  
+  .cart-item__variant {
+    font-size: 14px;
+    color: #666;
+    margin: 5px 0;
+  }
+  
+  .cart-item__remove {
+    font-size: 14px;
+    color: #999;
+    text-decoration: underline;
+  }
+  
+  .cart-item__quantity input {
+    width: 60px;
+    padding: 8px;
+    text-align: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .shipping-message {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    margin: 20px 0;
+    text-align: center;
+    font-size: 16px;
+  }
+  
+  .success-message {
+    color: #2ecc71;
+    font-weight: bold;
+  }
+  
+  .cart-footer {
+    margin-bottom: 40px;
+  }
+  
+  .cart-subtotal {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 0;
+    font-weight: bold;
+    font-size: 18px;
+    border-top: 2px solid #e8e8e8;
+  }
+  
+  .cart-disclaimer {
+    text-align: right;
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  .cart-actions {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .btn {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .btn--update {
+    background-color: #f8f9fa;
+    color: #333;
+    border: 1px solid #ddd;
+  }
+  
+  .btn--checkout {
+    background-color: #2ecc71;
+    color: white;
+  }
+  
+  .btn--add-to-cart {
+    background-color: #3498db;
+    color: white;
+    width: 100%;
+  }
+  
+  .btn--continue {
+    background-color: #3498db;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+  }
+  
+  .cart-upsell {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  .cart-upsell h3 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  
+  .upsell-product {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .upsell-product__link {
+    text-decoration: none;
+    color: #333;
+  }
+  
+  .upsell-product__image {
+    margin-bottom: 10px;
+    border-radius: 4px;
+  }
+  
+  .upsell-product__title {
+    margin: 10px 0 5px;
+    font-size: 16px;
+  }
+  
+  .upsell-product__price {
+    color: #666;
+    margin-bottom: 15px;
+  }
+  
+  .upsell-product__form {
+    width: 100%;
+    max-width: 200px;
+  }
+  
+  .empty-cart {
+    text-align: center;
+    padding: 50px 0;
+  }
+  
+  .empty-cart p {
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: #666;
+  }
+</style></td>
+              <td>
+                {{ item.final_line_price | money }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      
+      <!-- BONUS TASK: Buy More, Save More -->
+      <div class="shipping-message">
+        {% assign cart_total = cart.total_price %}
+        
+        {% if cart_total < 50000 %}
+          {% assign amount_needed = 50000 | minus: cart_total %}
+          <p>Spend ₹{{ amount_needed | divided_by: 100.00 }} more to get free shipping!</p>
+        {% else %}
+          <p class="success-message">🎉 You've unlocked free shipping! 🎉</p>
+        {% endif %}
+      </div>
+      
+      <!-- Cart footer with totals -->
+      <div class="cart-footer">
+        <div class="cart-subtotal">
+          <span>Subtotal:</span>
+          <span>{{ cart.total_price | money }}</span>
+        </div>
+        <div class="cart-taxes">
+          <p>Taxes and shipping calculated at checkout</p>
+        </div>
+        <div class="cart-actions">
+          <input type="submit" name="update" class="btn update-cart" value="Update Cart">
+          <input type="submit" name="checkout" class="btn checkout" value="Checkout">
+        </div>
+      </div>
+    </form>
+    
+    <!-- TASK 4: Custom Upsell Section -->
+    <div class="cart-upsell">
+      {% assign cart_total = cart.total_price %}
+      
+      {% if cart_total < 100000 %}
+        {% assign upsell_collection = collections['Accessories'] %}
+        <h3>Complete your purchase with these accessories:</h3>
+      {% else %}
+        {% assign upsell_collection = collections['Premium'] %}
+        <h3>You might also like these premium items:</h3>
+      {% endif %}
+      
+      {% if upsell_collection.products.size > 0 %}
+        {% assign random_product = upsell_collection.products | sample %}
+        <div class="upsell-product">
+          <a href="{{ random_product.url }}">
+            <img src="{{ random_product.featured_image | img_url: '200x200' }}" alt="{{ random_product.title }}">
+            <h4>{{ random_product.title }}</h4>
+            <p>{{ random_product.price | money }}</p>
+          </a>
+          <form action="/cart/add" method="post">
+            <input type="hidden" name="id" value="{{ random_product.variants.first.id }}">
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" class="btn">Add to Cart</button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+  {% else %}
+    <div class="empty-cart">
+      <p>Your cart is currently empty.</p>
+      <a href="/collections/all" class="btn continue-shopping">Continue shopping</a>
+    </div>
+  {% endif %}
+</div>
+
+<style>
+  .cart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 30px;
+  }
+  
+  .cart-table th, .cart-table td {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .cart-item__info {
+    display: flex;
+    align-items: center;
+  }
+  
+  .cart-item__info img {
+    margin-right: 15px;
+  }
+  
+  .shipping-message {
+    padding: 15px;
+    background-color: #f8f9fa;
+    margin: 20px 0;
+    border-radius: 4px;
+    text-align: center;
+  }
+  
+  .success-message {
+    color: #2ecc71;
+    font-weight: bold;
+  }
+  
+  .cart-footer {
+    margin-bottom: 40px;
+  }
+  
+  .cart-subtotal {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+  
+  .cart-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+  }
+  
+  .cart-upsell {
+    margin-top: 40px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  .upsell-product {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: 20px;
+  }
+  
+  .upsell-product img {
+    margin-bottom: 10px;
+  }
+  
+  .empty-cart {
+    text-align: center;
+    padding: 40px 0;
+  }
+  
+  .btn {
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+  
+  .checkout {
+    background-color: #2ecc71;
+  }
+</style>
